@@ -37,12 +37,12 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
   private var audioSettings: [String : Any]?
 
   public var isAudioSetup: Bool = false
-
+  public var enableAudio: Bool = false
   private var isPrepared: Bool = false
-  private var isRecording: Bool = false
+  private(set) var isRecording: Bool = false
 
   private var useAudio: Bool {
-    return options.useMicrophone && AVAudioSession.sharedInstance().recordPermission() == .granted && isAudioSetup
+    return enableAudio && options.useMicrophone && AVAudioSession.sharedInstance().recordPermission() == .granted && isAudioSetup
   }
   private var videoFramesWritten: Bool = false
   private var waitingForPermissions: Bool = false
@@ -118,7 +118,7 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
   }
 
   public func setupAudio() {
-    guard self.options.useMicrophone, !self.isAudioSetup else { return }
+    guard self.enableAudio, self.options.useMicrophone, !self.isAudioSetup else { return }
 
     recordingSession = AVAudioSession.sharedInstance()
 
@@ -140,6 +140,8 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
   }
 
   private func startRecordingAudio() {
+    guard self.enableAudio else { return }
+
     let audioUrl = self.options.audioOnlyUrl
 
     let settings = self.options.assetWriterAudioInputSettings
