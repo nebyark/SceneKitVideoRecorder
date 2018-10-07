@@ -173,7 +173,7 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
     writer.add(videoInput)
   }
 
-  public func startWriting() -> Future<Void, NSError> {
+  @discardableResult public func startWriting() -> Future<Void, NSError> {
     let promise = Promise<Void, NSError>()
     guard !isRecording else {
       promise.failure(NSError(domain: errorDomain, code: ErrorCode.recorderBusy.rawValue, userInfo: nil))
@@ -194,7 +194,7 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
     return promise.future
   }
 
-  public func finishWriting() -> Future<URL, NSError> {
+  @discardableResult public func finishWriting() -> Future<URL, NSError> {
 
     let promise = Promise<URL, NSError>()
     guard isRecording, writer.status == .writing else {
