@@ -34,7 +34,7 @@ public class SceneKitVideoRecorder: NSObject {
     private var videoFramesWritten: Bool = false
     private var waitingForPermissions: Bool = false
 
-    private var renderer: SCNRenderer!
+    private var renderer: SCNRenderer?
 
     public var updateFrameHandler: ((_ image: UIImage) -> Void)? = nil
     private var finishedCompletionHandler: ((_ url: URL) -> Void)? = nil
@@ -70,7 +70,7 @@ public class SceneKitVideoRecorder: NSObject {
     private func prepare(with options: Options) {
         guard let device = MTLCreateSystemDefaultDevice() else { return }
         self.renderer = SCNRenderer(device: device, options: nil)
-        renderer.scene = self.sceneView.scene
+        renderer?.scene = self.sceneView.scene
 
         initialTime = kCMTimeInvalid
 
@@ -149,12 +149,9 @@ public class SceneKitVideoRecorder: NSObject {
 
         currentTime = kCMTimeInvalid
 
+        self.stopDisplayLink()
         writer.finishWriting { [weak self] in
-
             guard let this = self else { return }
-
-            this.stopDisplayLink()
-
             FileController.move(from: this.options.videoOnlyUrl, to: this.options.outputUrl)
             let outputUrl = this.cleanUp()
             promise.success(outputUrl)
@@ -207,7 +204,9 @@ public class SceneKitVideoRecorder: NSObject {
         autoreleasepool {
 
             let time = CACurrentMediaTime()
-            let image = renderer.snapshot(atTime: time, with: self.options.videoSize, antialiasingMode: self.options.antialiasingMode)
+            guard let image = renderer?.snapshot(atTime: time, with: self.options.videoSize, antialiasingMode: self.options.antialiasingMode) else {
+                return
+            }
 
             updateFrameHandler?(image)
 
